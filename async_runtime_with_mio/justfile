@@ -1,0 +1,15 @@
+
+default:
+    echo "Learning reference link https://tweedegolf.nl/en/blog/114/building-an-async-runtime-with-mio"
+    just --list
+
+run:
+    cargo run
+
+back new_name='m0':
+    mkdir -p examples
+    cp src/main.rs examples/{{new_name}}.rs
+
+ex name='m0':
+    cargo run --example {{name}}
+
