@@ -1,9 +1,9 @@
 mod executor {
-    use std::{collections::HashMap, pin::Pin, sync::{mpsc, Arc, Mutex, OnceLock}, task::{Context, Poll, RawWaker, RawWakerVTable, Waker}};
+    use std::{
+        collections::{hash_map::Entry, HashMap}, io::{self, ErrorKind}, net::{SocketAddr, ToSocketAddrs}, pin::Pin, sync::{mpsc, Arc, Mutex, OnceLock}, task::{Context, Poll, RawWaker, RawWakerVTable, Waker}
+    };
 
-    use mio::{Registry, Token};
-
-
+    use mio::{Interest, Registry, Token};
 
     pub trait Future {
         type Output;
@@ -16,7 +16,7 @@ mod executor {
     }
 
     fn clone(ptr: *const ()) -> RawWaker {
-        let ori: Arc<Task> = unsafe { Arc::from_raw(ptr as _)};
+        let ori: Arc<Task> = unsafe { Arc::from_raw(ptr as _) };
 
         // Increment the inner counter of the arc.
         let cloned = ori.clone();
@@ -28,23 +28,23 @@ mod executor {
     }
 
     fn drop(ptr: *const ()) {
-        let _: Arc<Task> = unsafe { Arc::from_raw(ptr as _)};
+        let _: Arc<Task> = unsafe { Arc::from_raw(ptr as _) };
     }
 
     fn wake(ptr: *const ()) {
         let arc: Arc<Task> = unsafe { Arc::from_raw(ptr as _) };
         let spawner = arc.spawner.clone();
-        
+
         spawner.spawn_task(arc);
     }
-    
+
     fn wake_by_ref(ptr: *const ()) {
         let arc: Arc<Task> = unsafe { Arc::from_raw(ptr as _) };
-    
+
         arc.spawner.spawn_task(arc.clone());
-    
+
         // we don't actually have ownership of this arc value
-        // therefore we must not drop `arc` 
+        // therefore we must not drop `arc`
         std::mem::forget(arc)
     }
 
@@ -61,7 +61,7 @@ mod executor {
             let opaque_ptr = Arc::into_raw(self) as *const ();
             let vtable = &Self::WAKER_VTABLE;
 
-            unsafe { Waker::from_raw(RawWaker::new(opaque_ptr, vtable))}
+            unsafe { Waker::from_raw(RawWaker::new(opaque_ptr, vtable)) }
         }
     }
 
@@ -94,8 +94,6 @@ mod executor {
                 reactor
             })
         }
-        
-        
     }
 
     fn run(mut poll: mio::Poll) -> ! {
@@ -135,7 +133,7 @@ mod executor {
             }
         }
     }
-    
+
     #[derive(Clone)]
     pub struct Spawner {
         task_sender: std::sync::mpsc::SyncSender<Arc<Task>>,
@@ -160,7 +158,7 @@ mod executor {
 
         let (task_sender, ready_queue) = mpsc::sync_channel(MAX_QUEUED_TASKS);
 
-        (Executor{ ready_queue }, Spawner { task_sender })
+        (Executor { ready_queue }, Spawner { task_sender })
     }
 
     // async udpsocket
@@ -172,6 +170,74 @@ mod executor {
     impl Reactor {
         fn unique_token(&self) -> Token {
             use std::sync::atomic::{AtomicUsize, Ordering};
+            static CURRENT_TOKEN: AtomicUsize = AtomicUsize::new(0);
+            Token(CURRENT_TOKEN.fetch_add(1, Ordering::Relaxed))
+        }
+    }
+
+    impl UpdSocket {
+        pub fn bind(addr: impl ToSocketAddrs) -> std::io::Result<Self> {
+            let std_socket = std::net::UdpSocket::bind(addr)?;
+            std_socket.set_nonblocking(true)?;
+
+            let mut socket = mio::net::UdpSocket::from_std(std_socket);
+
+            let reactor = Reactor::get();
+            let token = reactor.unique_token();
+
+            Reactor::get().registry.register(
+                &mut socket,
+                token,
+                Interest::READABLE | Interest::WRITABLE,
+            )?;
+
+            Ok(self::UpdSocket { socket, token })
+        }
+
+        pub async fn send_to(&self, buf: &[u8], dest: SocketAddr) -> std::io::Result<usize> {
+            loop {
+                match self.socket.send_to(buf, dest) {
+                    Ok(value) => return Ok(value),
+                    Err(error) => {
+                        if error.kind() == ErrorKind::WouldBlock {
+                            std::future::poll_fn(|cx| {
+                                Reactor::get().poll(self.token, cx)
+                            }).await?
+                        } else {
+                            return Err(error),
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    impl Reactor {
+        pub fn poll(&self, token: Token, cx: &mut Context) -> Poll<io::Result<()>> {
+            let mut guard = self.statuses.lock().unwrap();
+            match guard.entry(token) {
+                // If there was no status inserted previously, we simply store the waker, so that the run function will respawn the future when the event happens.
+                Entry::Vacant(vacant) => {
+                    vacant.insert(Status::Awaited(cx.waker().clone()));
+                    Poll::Pending
+                }
+                // 
+                Entry::Occupied(mut occupied) => {
+                    match occupied.get() {
+                        Status::Awaited(waker) => {
+                            // skip clone is wakers are the same
+                            if !waker.will_wake(cx.waker()) {
+                                occupied.insert(Status::Awaited(cx.waker().clone()));
+                            }
+                            Poll::Pending
+                        }
+                        Status::Happened => {
+                            occupied.remove();
+                            Poll::Ready(Ok(()))
+                        }
+                    }
+                }
+            }
         }
     }
 
