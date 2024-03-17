@@ -1,20 +1,66 @@
+use crate::executor::new_executor_spawner;
+
 mod executor {
     use std::{
-        collections::{hash_map::Entry, HashMap}, io::{self, ErrorKind}, net::{SocketAddr, ToSocketAddrs}, pin::Pin, sync::{mpsc, Arc, Mutex, OnceLock}, task::{Context, Poll, RawWaker, RawWakerVTable, Waker}
+        collections::{hash_map::Entry, HashMap}, future::Future, io::{self, ErrorKind}, net::{SocketAddr, ToSocketAddrs}, pin::Pin, sync::{mpsc, Arc, Mutex, OnceLock}, task::{Context, Poll, RawWaker, RawWakerVTable, Waker}
     };
 
     use mio::{Interest, Registry, Token};
 
-    pub trait Future {
-        type Output;
-        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
-    }
-
+    // Begin Implementing The Executor
     pub(crate) struct Task {
         future: Mutex<Pin<Box<dyn Future<Output = ()> + Send + 'static>>>,
         spawner: Spawner,
     }
 
+    pub struct Executor {
+        ready_queue: std::sync::mpsc::Receiver<Arc<Task>>,
+    }
+
+    impl Executor {
+        pub fn run(&self) {
+            while let Ok(task) = self.ready_queue.recv() {
+                let mut future = task.future.lock().unwrap();
+
+                // make a context (explained later)
+                let waker = Arc::clone(&task).waker();
+                let mut context = Context::from_waker(&waker);
+
+                // allow the future some CPU time to make progress
+                let _ = future.as_mut().poll(&mut context);
+            }
+        }
+    }
+
+    // Begin Implementing a Spawner
+    #[derive(Clone)]
+    pub struct Spawner {
+        task_sender: std::sync::mpsc::SyncSender<Arc<Task>>,
+    }
+
+    pub fn new_executor_spawner() -> (Executor, Spawner) {
+        const MAX_QUEUED_TASKS: usize = 10_000;
+
+        let (task_sender, ready_queue) = mpsc::sync_channel(MAX_QUEUED_TASKS);
+
+        (Executor { ready_queue }, Spawner { task_sender })
+    }
+
+    impl Spawner {
+        pub fn spawn(&self, future: impl Future<Output = ()> + Send + 'static) {
+            let task = Arc::new(Task {
+                future: Mutex::new(Box::pin(future)),
+                spawner: self.clone(),
+            });
+            self.spawn_task(task)
+        }
+
+        pub(crate) fn spawn_task(&self, task: Arc<Task>) {
+            self.task_sender.send(task).unwrap();
+        }
+    }
+
+    // Begin Constructing a Waker
     fn clone(ptr: *const ()) -> RawWaker {
         let ori: Arc<Task> = unsafe { Arc::from_raw(ptr as _) };
 
@@ -65,6 +111,7 @@ mod executor {
         }
     }
 
+    // Begin Implementing the Reactor
     pub enum Status {
         Awaited(Waker),
         Happened,
@@ -115,54 +162,9 @@ mod executor {
         }
     }
 
-    pub struct Executor {
-        ready_queue: std::sync::mpsc::Receiver<Arc<Task>>,
-    }
-
-    impl Executor {
-        pub fn run(&self) {
-            while let Ok(task) = self.ready_queue.recv() {
-                let mut future = task.future.lock().unwrap();
-
-                // make a context (explained later)
-                let waker = Arc::clone(&task).waker();
-                let mut context = Context::from_waker(&waker);
-
-                // allow the future some CPU time to make progress
-                let _ = future.as_mut().poll(&mut context);
-            }
-        }
-    }
-
-    #[derive(Clone)]
-    pub struct Spawner {
-        task_sender: std::sync::mpsc::SyncSender<Arc<Task>>,
-    }
-
-    impl Spawner {
-        pub fn spawn(&self, future: impl Future<Output = ()> + Send + 'static) {
-            let task = Arc::new(Task {
-                future: Mutex::new(Box::pin(future)),
-                spawner: self.clone(),
-            });
-            self.spawn_task(task);
-        }
-
-        pub(crate) fn spawn_task(&self, task: Arc<Task>) {
-            self.task_sender.send(task).unwrap();
-        }
-    }
-
-    pub fn new_executor_spawner() -> (Executor, Spawner) {
-        const MAX_QUEUED_TASKS: usize = 10_000;
-
-        let (task_sender, ready_queue) = mpsc::sync_channel(MAX_QUEUED_TASKS);
-
-        (Executor { ready_queue }, Spawner { task_sender })
-    }
 
     // async udpsocket
-    pub struct UpdSocket {
+    pub struct UdpSocket {
         socket: mio::net::UdpSocket,
         token: Token,
     }
@@ -175,7 +177,7 @@ mod executor {
         }
     }
 
-    impl UpdSocket {
+    impl UdpSocket {
         pub fn bind(addr: impl ToSocketAddrs) -> std::io::Result<Self> {
             let std_socket = std::net::UdpSocket::bind(addr)?;
             std_socket.set_nonblocking(true)?;
@@ -191,22 +193,21 @@ mod executor {
                 Interest::READABLE | Interest::WRITABLE,
             )?;
 
-            Ok(self::UpdSocket { socket, token })
+            Ok(self::UdpSocket { socket, token })
         }
+    }
 
+    impl UdpSocket {
         pub async fn send_to(&self, buf: &[u8], dest: SocketAddr) -> std::io::Result<usize> {
             loop {
                 match self.socket.send_to(buf, dest) {
                     Ok(value) => return Ok(value),
-                    Err(error) => {
-                        if error.kind() == ErrorKind::WouldBlock {
-                            std::future::poll_fn(|cx| {
-                                Reactor::get().poll(self.token, cx)
-                            }).await?
-                        } else {
-                            return Err(error),
-                        }
+                    Err(error) if error.kind() == ErrorKind::WouldBlock => {
+                        std::future::poll_fn(|cx| {
+                            Reactor::get().poll(self.token, cx)
+                        }).await?
                     }
+                    Err(error) => return Err(error),
                 }
             }
         }
@@ -216,7 +217,8 @@ mod executor {
         pub fn poll(&self, token: Token, cx: &mut Context) -> Poll<io::Result<()>> {
             let mut guard = self.statuses.lock().unwrap();
             match guard.entry(token) {
-                // If there was no status inserted previously, we simply store the waker, so that the run function will respawn the future when the event happens.
+                // If there was no status inserted previously, we simply store the waker, 
+                // so that the run function will respawn the future when the event happens.
                 Entry::Vacant(vacant) => {
                     vacant.insert(Status::Awaited(cx.waker().clone()));
                     Poll::Pending
@@ -226,6 +228,8 @@ mod executor {
                     match occupied.get() {
                         Status::Awaited(waker) => {
                             // skip clone is wakers are the same
+                            // If there was already a waker there, we update it 
+                            // if it’s different from the waker in our current context
                             if !waker.will_wake(cx.waker()) {
                                 occupied.insert(Status::Awaited(cx.waker().clone()));
                             }
@@ -241,8 +245,47 @@ mod executor {
         }
     }
 
+    impl Drop for UdpSocket {
+        fn drop(&mut self) {
+            let _ = Reactor::get().registry.deregister(&mut self.socket);
+        }
+    }
+    impl UdpSocket {
+        pub async fn recv_from(&self, buf: &mut [u8]) -> std::io::Result<(usize, SocketAddr)> {
+            loop {
+                match self.socket.recv_from(buf) {
+                    Ok(value) => return Ok(value),
+                    Err(error) if error.kind() == ErrorKind::WouldBlock => {
+                        std::future::poll_fn(|cx| Reactor::get().poll(self.token, cx)).await?
+                    }
+                    Err(error) => return Err(error),
+                }
+            }
+        }
+    }
+    
+
 }
 
 fn main() {
-    println!("Hello, world!");
+    let (executor, spawner) = new_executor_spawner();
+    spawner.spawn(async_main());
+
+    drop(spawner);
+    executor.run();
+
+}
+
+async fn async_main() {
+    let socket = executor::UdpSocket::bind("127.0.0.1:8000").unwrap();
+
+    let mut buf = [0; 10];
+    loop {
+        let (amt, src) = socket.recv_from(&mut buf).await.unwrap();
+
+        let buf = &mut buf[..amt];
+        println!("recv: {:?}", buf);
+        buf.reverse();
+        socket.send_to(buf, src).await.unwrap();
+    }
 }

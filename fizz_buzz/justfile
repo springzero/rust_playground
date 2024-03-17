@@ -10,6 +10,7 @@ run:
 bench:
     cargo bench
 
+# move old main code to example as a record
 back new_name='m0':
     mkdir -p examples
     cp src/main.rs examples/{{new_name}}.rs
