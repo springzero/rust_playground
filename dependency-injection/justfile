@@ -1,0 +1,21 @@
+
+default:
+    echo "Learning reference link https://nickbryan.co.uk/software/using-a-type-map-for-dependency-injection-in-rust/"
+    just --list
+
+run:
+    cargo run
+
+test:
+    cargo test
+
+# move old main code to example as a record
+back new_name='m0':
+    mkdir -p examples
+    cp src/main.rs examples/{{new_name}}.rs
+
+ex name='m0':
+    cargo run --example {{name}}
+
+ex_test name='m0':
+    cargo test --example {{name}}
