@@ -1,0 +1,12 @@
+<Document>
+	<name>gen.kml</name>
+	<Folder>
+		<name>gen</name>
+        {% for p in points %}
+		<Placemark>
+            <name>{{ p.name }}</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>{{ p.long }},{{ p.lati }},0</coordinates></Point>
+		</Placemark>
+        {% endfor %}
+	</Folder>
+</Document>

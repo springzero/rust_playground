@@ -1,0 +1,187 @@
+<Document>
+	<name>gen.kml</name>
+	<Folder>
+		<name>gen</name>
+        
+		<Placemark>
+            <name>火1号站_20|21|22|23_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.02030210000001,44.56262219999999,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火36号站_24|25|26|27_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.0108973,44.5658079,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火38号站_28|29|30|31_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.00666310000001,44.5554452,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火13号站_32|33|34|35_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.0062566,44.5782205,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火27号站_36|37|38|39_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.0250777,44.5583885,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火29号站_40|41|42|43_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.02301460000001,44.55356079999999,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火10号站_44|45|46|47_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.01977790000001,44.54929490000001,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火30号站_48|49|50|51_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.0136827,44.553326,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火22号站_52|53|54|55_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.02486730000001,44.5832593,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>火7号站_56|57|58|59_21</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>89.0205087,44.5710405,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北18号站_66|67|68|69|70|71_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4500584,44.208809099999996,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北10号站_36|37|38|39|40|41_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4111198,44.2210812,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>西泉1-3号站_42|43|44|45|46|47_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.35446029999999,44.1907937,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>西泉1-2号站_36|37|38|39|40|41_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.3551539,44.195643499999996,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙21号站_24|25|26|27|28|29_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4238594,44.2750043,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙20号站_25|26|27|28|29|30_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.40072819999999,44.317389999999996,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙19号站_12|13|14|15|16|17_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.40205519999999,44.3123852,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙18号站_31|32|33|34|35|36_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4188983,44.3177787,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙17号站_53|54|55|56|57|58_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.41711219999999,44.312680300000004,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙16号站_90|91|92|93|94|95_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4105704,44.2740123,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙14号站_78|79|80|81|82|83_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.42549290000001,44.265196599999996,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙12号站_66|67|68|69|70|71_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4200132,44.2573953,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙11号站_60|61|62|63|64|65_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4268315,44.2551224,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙10号站_54|55|56|57|58|59_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4007629,44.3226668,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙9号站_48|49|50|51|52|53_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.44106970000001,44.306758499999994,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙5号站_24|25|26|27|28|29_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4135529,44.2894045,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙4号站_18|19|20|21|22|23_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4204097,44.28685900000001,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙2号站_27|28|29|30|31|32_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4120326,44.2809483,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>沙1号站_6|7|8|9|10|11_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.41864240000001,44.2795523,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北20号站_78|79|80|81|82|83_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.42070100000001,44.228554,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北19号站_72|73|74|75|76|77_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4353239,44.2067453,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北14号站_54|55|56|57|58|59_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.47653969999999,44.2150157,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北13号站_48|49|50|51|52|53_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4696975,44.212946,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北11号站_42|43|44|45|46|47_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4560753,44.208650500000005,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北8号站_24|25|26|27|28|29_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.417593,44.2210911,0</coordinates></Point>
+		</Placemark>
+        
+		<Placemark>
+            <name>北7号站_18|19|20|21|22|23_17</name>
+			<Point><extrude>0</extrude><altitudeMode>clampToGround</altitudeMode><coordinates>88.4239164,44.2188716,0</coordinates></Point>
+		</Placemark>
+        
+	</Folder>
+</Document>
