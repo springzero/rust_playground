@@ -1,0 +1,22 @@
+
+default:
+    echo "Learning reference\n\
+    https://cliffle.com/blog/rust-typestate/\n\
+    https://cryptical.xyz/rust/type-state-pattern\n\
+    https://zerotomastery.io/blog/rust-typestate-patterns\n"
+    just --list
+
+run:
+    cargo run
+
+# benchmark code
+bench:
+    cargo bench
+
+# move old main code to example as a record
+back new_name='m0':
+    mkdir -p examples
+    cp src/main.rs examples/{{new_name}}.rs
+
+ex name='m0':
+    cargo run --example {{name}}
